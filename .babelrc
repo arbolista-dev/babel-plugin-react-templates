@@ -1,4 +1,8 @@
 {
   "presets": ["es2015"],
-  "plugins": ["transform-runtime"],
+  "plugins": [
+    ["./src/index.js", {
+      "ext": ".template.html$"
+    }]
+  ]
 }
