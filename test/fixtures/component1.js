@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'lodash';
 import Component2 from './component2';
 
-import template from './component1.template.html';
+var template = require('./component1.rt.html');
 
 export default class Component1 extends React.Component {
 
@@ -11,6 +11,7 @@ export default class Component1 extends React.Component {
   }
 
   render(){
+    console.log('yada!!')
     return template.call(this);
   }
 

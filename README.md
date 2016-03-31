@@ -16,7 +16,7 @@ $ npm install babel-plugin-react-templates
 
 Plugin options are passed to `reactTemplates.convertTemplateToReact`.
 
-There is also an `ext` option for you to specify the extension you want to be compiled by React Templates (the default is `template.html`.
+There is also an `ext` option for you to specify the extension you want to be compiled by React Templates (the default is `rt.html`).
 
 ### `.babelrc`
 
@@ -25,7 +25,7 @@ There is also an `ext` option for you to specify the extension you want to be co
 ```json
 {
   "presets": ["es2015"],
-  "plugins": ["react-templates", {"targetVersion": "0.14.0", "ext": "rt"}]
+  "plugins": ["react-templates", {"targetVersion": "0.14.0", "ext": "template.html"}]
 }
 ```
 

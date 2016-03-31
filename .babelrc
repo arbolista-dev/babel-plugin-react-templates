@@ -2,7 +2,7 @@
   "presets": ["es2015"],
   "plugins": [
     ["./src/index.js", {
-      "ext": ".template.html$"
+      "ext": ".rt.html$"
     }]
   ]
 }
