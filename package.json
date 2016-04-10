@@ -30,7 +30,7 @@
     "jasmine": "2.4.1"
   },
   "scripts": {
-    "test": "BABEL_DISABLE_CACHE=1 babel-node test.jasmine.js",
+    "test": "BABEL_DISABLE_CACHE=1 NODE_ENV=TEST babel-node test.jasmine.js",
     "build": "babel src --out-dir lib",
     "prepublish": "npm run build"
   },
