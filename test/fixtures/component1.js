@@ -11,7 +11,6 @@ export default class Component1 extends React.Component {
   }
 
   render(){
-    console.log('')
     return template.call(this);
   }
 

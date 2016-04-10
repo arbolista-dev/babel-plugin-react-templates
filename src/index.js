@@ -9,10 +9,14 @@ const DEFAULT_RT_OPTIONS = {
   modules: 'es6'
 };
 
+/*
+ * Take template relative path, read the file, and write the compiled JS template
+ */
+
 function fnCompiledTemplate(node_path, plugin, opts){
   var base_path = path.dirname(plugin.file.opts.filename),
     absolute_path = path.resolve(base_path, opts.relative_path),
-    rt_options = Object.assign(DEFAULT_RT_OPTIONS, plugin.opts, {name: opts.assignment}),
+    rt_options = Object.assign(DEFAULT_RT_OPTIONS, plugin.opts),
     source = fs.readFileSync(absolute_path, {encoding: 'utf8'}),
     compiled_template = reactTemplates.convertTemplateToReact(source, rt_options),
     compiled_filename = '_' + path.basename(opts.relative_path).replace(opts.reg_ext, '.rt.js'),
@@ -24,6 +28,11 @@ function fnCompiledTemplate(node_path, plugin, opts){
 module.exports = function ({types: t}) {
 	return {
 		visitor: {
+
+      /*
+       * Catch Template import declarations
+       */
+
 			ImportDeclaration: {
         enter(node_path, plugin) {
           let relative_path = node_path.node.source.value,
@@ -39,23 +48,29 @@ module.exports = function ({types: t}) {
           }
         }
     	},
+
+      /*
+       * Catch Template require calls
+       */
+
       CallExpression: {
         enter(node_path, plugin){
-            if (node_path.node.callee.name === 'require'){
-              let args = node_path.node.arguments
-              if (args.length && t.isStringLiteral(args[0])){
-                var ext = plugin.opts.ext || '.rt.html',
-                  reg_ext = new RegExp(ext + '$'),
-                  relative_path = args[0].value;
-                if (reg_ext.test(relative_path)){
-                  let compiled_path = fnCompiledTemplate(node_path, plugin, {
-                    ext: ext,
-                    reg_ext: reg_ext,
-                    relative_path: relative_path
-                  });
-                  node_path.replaceWithSourceString(`require('${compiled_path}').default`)
-                }
+          if (node_path.node.callee.name === 'require'){
+            let args = node_path.node.arguments
+            if (args.length && t.isStringLiteral(args[0])){
+              var ext = plugin.opts.ext || '.rt.html',
+                reg_ext = new RegExp(ext + '$'),
+                relative_path = args[0].value;
+              if (reg_ext.test(relative_path)){
+                let compiled_path = fnCompiledTemplate(node_path, plugin, {
+                  ext: ext,
+                  reg_ext: reg_ext,
+                  relative_path: relative_path
+                });
+                // React Templates exports templates in ES6 as export default
+                node_path.replaceWithSourceString(`require('${compiled_path}').default`)
               }
+            }
           }
         }
       }
