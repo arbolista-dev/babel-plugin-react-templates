@@ -9,23 +9,16 @@ const DEFAULT_RT_OPTIONS = {
   modules: 'es6'
 };
 
-function fnCompiledTemplate(relative_path, node_path, plugin){
-  console.log('~~~~')
-  console.log(JSON.stringify(plugin.opts))
-  console.log(JSON.stringify(plugin.file))
-  var ext = plugin.opts.ext || ".rt.html$",
-    reg_ext = new RegExp(ext),
-    base_path = path.dirname(plugin.file.opts.filename),
-    absolute_path = path.resolve(base_path, relative_path),
-    assignment = node_path.node.specifiers[0].local.name,
-    rt_options = Object.assign(DEFAULT_RT_OPTIONS, plugin.opts, {name: assignment}),
+function fnCompiledTemplate(node_path, plugin, opts){
+  var base_path = path.dirname(plugin.file.opts.filename),
+    absolute_path = path.resolve(base_path, opts.relative_path),
+    rt_options = Object.assign(DEFAULT_RT_OPTIONS, plugin.opts, {name: opts.assignment}),
     source = fs.readFileSync(absolute_path, {encoding: 'utf8'}),
-    compiled_template = reactTemplates.convertTemplateToReact(source, rt_options);
-
-  var compiled_filename = '_' + path.basename(relative_path).replace(reg_ext, '.rt.js'),
+    compiled_template = reactTemplates.convertTemplateToReact(source, rt_options),
+    compiled_filename = '_' + path.basename(opts.relative_path).replace(opts.reg_ext, '.rt.js'),
     compiled_path = path.resolve(base_path, compiled_filename);
   fs.writeFileSync(compiled_path, compiled_template, 'utf8');
-  node_path.node.source.value = compiled_path;
+  return compiled_path
 }
 
 module.exports = function ({types: t}) {
@@ -33,27 +26,36 @@ module.exports = function ({types: t}) {
 		visitor: {
 			ImportDeclaration: {
         enter(node_path, plugin) {
-          var relative_path = node_path.node.source.value,
-            ext = plugin.opts.ext || ".rt.html$",
-            reg_ext = new RegExp(ext);
+          let relative_path = node_path.node.source.value,
+            ext = plugin.opts.ext || '.rt.html',
+            reg_ext = new RegExp(ext + '$');
           if (reg_ext.test(relative_path)){
-            console.log('compiling import')
-            fnCompiledTemplate(relative_path, node_path, plugin);
+            let compiled_path = fnCompiledTemplate(node_path, plugin, {
+              relative_path: relative_path,
+              ext: ext,
+              reg_ext: reg_ext
+            });
+            node_path.node.source.value = compiled_path;
           }
         }
     	},
       CallExpression: {
         enter(node_path, plugin){
-          var args = node_path.node.arguments;
-          if (node_path.node.callee.name === 'require' && args.length && t.isStringLiteral(args[0])){
-            var ext = plugin.opts.ext || ".rt.html$",
-              reg_ext = new RegExp(ext),
-              relative_path = args[0].value;
-            if (reg_ext.test(relative_path)){
-              console.log('compiling require')
-              console.log(JSON.stringify(plugin.file.opts.filename))
-              fnCompiledTemplate(relative_path, node_path, plugin);
-            }
+            if (node_path.node.callee.name === 'require'){
+              let args = node_path.node.arguments
+              if (args.length && t.isStringLiteral(args[0])){
+                var ext = plugin.opts.ext || '.rt.html',
+                  reg_ext = new RegExp(ext + '$'),
+                  relative_path = args[0].value;
+                if (reg_ext.test(relative_path)){
+                  let compiled_path = fnCompiledTemplate(node_path, plugin, {
+                    ext: ext,
+                    reg_ext: reg_ext,
+                    relative_path: relative_path
+                  });
+                  node_path.replaceWithSourceString(`require('${compiled_path}').default`)
+                }
+              }
           }
         }
       }
