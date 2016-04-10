@@ -1,10 +1,12 @@
-import { parse } from 'babylon';
+'use strict';
+
+import {parse} from 'babylon';
 import reactTemplates from 'react-templates/src/reactTemplates';
 import url  from 'url';
 import fs from 'fs';
 import path from 'path';
 
-const DEFAULT_RT_OPTIONS = {
+let DEFAULT_RT_OPTIONS = {
   targetVersion: '0.14.0',
   modules: 'es6'
 };
