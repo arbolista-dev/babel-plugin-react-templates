@@ -16,7 +16,7 @@ $ npm install babel-plugin-react-templates
 
 Plugin options are passed to `reactTemplates.convertTemplateToReact`.
 
-There is also an `ext` option for you to specify the extension you want to be compiled by React Templates (the default is `template.html`.
+There is also an `ext` option for you to specify the extension you want to be compiled by React Templates (the default is `rt.html`).
 
 ### `.babelrc`
 
@@ -25,21 +25,17 @@ There is also an `ext` option for you to specify the extension you want to be co
 ```json
 {
   "presets": ["es2015"],
-  "plugins": ["react-templates", {"targetVersion": "0.14.0", "ext": "rt"}]
+  "plugins": ["react-templates", {"targetVersion": "0.14.0", "ext": "template.html"}]
 }
 ```
 
-This plugin does requires Babel ES2015 preset. If you want to make this work without ES2015, PR's are very welcome.
+This plugin does requires Babel ES2015 preset.
 
-## Notes
+## Examples
 
 This Babel plugin requires you to import your template dependencies BEFORE your templates. For example,
 
 ```js
-import React from 'react';
-import _ from 'lodash';
-import OtherComponent from './../other_component/other_component';
-
 import template from './my_component.template.html';
 
 class MyComponent extends React.Component{
@@ -52,21 +48,10 @@ class MyComponent extends React.Component{
 
 ```
 
-This means you should NOT rely on it to compile React Templates for webpack. Use [react-templates-loader](https://www.npmjs.com/package/react-templates-loader) for client side compiling.
-
-Why? Because this Babel plugin assumes your dependencies are accessible by the variable names you use in your template. For example, the plugin would compile the above file as:
-
+OR
 
 ```js
-import React from 'react';
-import _ from 'lodash';
-import OtherComponent from './other_component';
-
-// begin babel-plugin-react-templates result
-var template = function () {
-    return React.createElement('h1', {}, 'Hello World');
-};
-// end babel-plugin-react-templates result
+let template = require('./my_component.template.html');
 
 class MyComponent extends React.Component{
   // ...
@@ -77,4 +62,17 @@ class MyComponent extends React.Component{
 }
 
 ```
-This means you have to declare your dependencies twice if you are compiling for client as well. Annoying. PRs are welcome.
+
+## Compilation
+
+Currently, the plugin will take a template such as `my_component/my_component.template.html' and write the compiled template to `my_component/_my_component.template.js'. It then does the Babel transformations to import this file instead of the html file.
+
+## Improvements Needed
+
+Babel will not watch your `template.html` files - that is, if you make a change to your html template, `babel-node` will not recompile the template.
+
+Two work arounds for this current:
+
+1. In development and testing, run your scripts with `BABEL_DISABLE_CACHE=1`.
+2. Force Babel to compile your changes by making a change to your component file (ie the file that requires the template).
+

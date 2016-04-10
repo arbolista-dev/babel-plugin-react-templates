@@ -1,10 +1,8 @@
 {
   "presets": ["es2015"],
-  "env": {
-    "TEST": {
-      "plugins":  [["./src/index.js", {
-              "ext": ".template.html$"
-            }]]
-    }
-  }
+  "plugins": [
+    ["./src/index.js", {
+      "ext": ".rt.html$"
+    }]
+  ]
 }
